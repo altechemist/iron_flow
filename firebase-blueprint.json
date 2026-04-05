@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user settings, PRs, and preferences.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "experienceLevel": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+        "goal": { "type": "string", "enum": ["strength", "hypertrophy", "fitness"] },
+        "units": { "type": "string", "enum": ["kg", "lbs"] },
+        "currentDay": { "type": "string", "enum": ["A", "B", "C"] },
+        "oneRMs": { "type": "object" },
+        "desiredWorkoutTime": { "type": "number" },
+        "onboarded": { "type": "boolean" },
+        "customExercises": { "type": "array" },
+        "availableEquipment": { "type": "array" },
+        "weightHistory": { "type": "array" },
+        "templates": { "type": "array" },
+        "workoutMode": { "type": "string", "enum": ["standard", "bodyweight"] },
+        "morningRoutineCompleted": { "type": "object" }
+      },
+      "required": ["name", "experienceLevel", "goal", "units", "currentDay", "oneRMs", "desiredWorkoutTime", "onboarded"]
+    },
+    "WorkoutLog": {
+      "title": "Workout Log",
+      "description": "Stores a single completed workout session.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "number" },
+        "dayType": { "type": "string", "enum": ["A", "B", "C"] },
+        "exercises": { "type": "array" },
+        "duration": { "type": "number" }
+      },
+      "required": ["id", "date", "dayType", "exercises", "duration"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document."
+    },
+    "/users/{userId}/logs/{logId}": {
+      "schema": "WorkoutLog",
+      "description": "Collection of workout logs for a user."
+    }
+  }
+}

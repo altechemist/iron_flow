@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Document ID: userId (Auth UID)
+    // Fields:
+    //   - name: string (required, 1-100 chars)
+    //   - experienceLevel: string (required, enum: beginner, intermediate, advanced)
+    //   - goal: string (required, enum: strength, hypertrophy, fitness)
+    //   - units: string (required, enum: kg, lbs)
+    //   - currentDay: string (required, enum: A, B, C)
+    //   - oneRMs: map (required, exerciseId -> number)
+    //   - desiredWorkoutTime: number (required, 30-180)
+    //   - onboarded: bool (required)
+    //   - customExercises: list (optional)
+    //   - availableEquipment: list (optional)
+    //   - weightHistory: list (optional)
+    //   - templates: list (optional)
+    //   - workoutMode: string (required, enum: standard, bodyweight)
+    //   - morningRoutineCompleted: map (optional, dateStr -> bool)
+    //
+    // Collection: /users/{userId}/logs/{logId}
+    // Document ID: auto-generated
+    // Fields:
+    //   - id: string (required)
+    //   - date: number (required, timestamp)
+    //   - dayType: string (required, enum: A, B, C)
+    //   - exercises: list (required)
+    //   - duration: number (required, positive)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['name', 'experienceLevel', 'goal', 'units', 'currentDay', 'oneRMs', 'desiredWorkoutTime', 'onboarded', 'workoutMode']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.experienceLevel in ['beginner', 'intermediate', 'advanced'] &&
+             data.goal in ['strength', 'hypertrophy', 'fitness'] &&
+             data.units in ['kg', 'lbs'] &&
+             data.currentDay in ['A', 'B', 'C'] &&
+             data.oneRMs is map &&
+             data.desiredWorkoutTime is number && data.desiredWorkoutTime >= 30 && data.desiredWorkoutTime <= 180 &&
+             data.onboarded is bool &&
+             data.workoutMode in ['standard', 'bodyweight'];
+    }
+
+    function isValidWorkoutLog(data) {
+      return data.keys().hasAll(['id', 'date', 'dayType', 'exercises', 'duration']) &&
+             data.id is string &&
+             data.date is number &&
+             data.dayType in ['A', 'B', 'C'] &&
+             data.exercises is list &&
+             data.duration is number && data.duration > 0;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "karabelonthoroane@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isAdmin();
+
+      match /logs/{logId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidWorkoutLog(request.resource.data);
+        allow update: if isOwner(userId) && isValidWorkoutLog(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

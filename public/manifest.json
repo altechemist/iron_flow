@@ -1,0 +1,17 @@
+{
+  "name": "IronFlow",
+  "short_name": "IronFlow",
+  "description": "A high-performance strength engine that auto-calculates weights and guides your A/B/C workout rotation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#f3ffca",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
