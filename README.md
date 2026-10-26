@@ -52,7 +52,7 @@ The plan is to rebuild IronFlow as an Expo (React Native) app with an Azure-host
 - [ ] Split `App.tsx` (about 2,500 lines) into one file per screen
 - [ ] Add unit tests for `src/lib/utils.ts` (Vitest)
 - [ ] Code-split the bundle (Vite warns about a chunk over 500 kB)
-- [ ] Deploy (Firebase Hosting or Vercel) and add the live link here
+- [x] Deploy to Firebase Hosting: https://ironflow-1cf38.web.app
 
 ### Expo port
 - [ ] Move `src/lib/utils.ts` and `src/types.ts` into a shared `packages/domain` with tests
